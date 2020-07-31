@@ -23,6 +23,7 @@ Vst_cpp1AudioProcessor::Vst_cpp1AudioProcessor()
 #endif
 {
 	addParameter(gain = new juce::AudioParameterFloat("gain", "Gain", 0.0f, 1.0f, 0.5f));
+	addParameter(invertPhase = new juce::AudioParameterBool("invertPhase", "Invert Phase", false));
 }
 
 Vst_cpp1AudioProcessor::~Vst_cpp1AudioProcessor()
@@ -94,6 +95,8 @@ void Vst_cpp1AudioProcessor::changeProgramName (int index, const juce::String& n
 //==============================================================================
 void Vst_cpp1AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
+	auto phase = *invertPhase ? -1.0f : 1.0f;
+	previousGain = *gain * phase;
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
 }
@@ -130,32 +133,17 @@ bool Vst_cpp1AudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts)
 
 void Vst_cpp1AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-	buffer.clear();
-
-	juce::MidiBuffer processedMidi;
-	int time;
-	juce::MidiMessage m;
-
-	for (juce::MidiBuffer::Iterator i(midiMessages); i.getNextEvent(m, time);)
+	auto phase = *invertPhase ? -1.0f : 1.0f;
+	auto currentGain = *gain * phase;
+	if (currentGain == previousGain)
 	{
-		if (m.isNoteOn())
-		{
-			uint8_t newVel = (uint8_t)noteOnVel;
-			m = juce::MidiMessage::noteOn(m.getChannel(), m.getNoteNumber(), newVel);
-		}
-		else if (m.isNoteOff())
-		{
-		}
-		else if (m.isAftertouch())
-		{
-		}
-		else if (m.isPitchWheel())
-		{
-		}
-
-		processedMidi.addEvent(m, time);
+		buffer.applyGain(currentGain);
 	}
-	midiMessages.swapWith(processedMidi);
+	else
+	{
+		buffer.applyGainRamp(0, buffer.getNumSamples(), previousGain, currentGain);
+		previousGain = currentGain;
+	}
 
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
@@ -198,6 +186,11 @@ juce::AudioProcessorEditor* Vst_cpp1AudioProcessor::createEditor()
 //==============================================================================
 void Vst_cpp1AudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
+	//juce::MemoryOutputStream(destData, true).writeFloat(*gain);
+	std::unique_ptr<juce::XmlElement> xml(new juce::XmlElement("ParamTutorial"));
+	xml->setAttribute("gain", (double)* gain);
+	xml->setAttribute("invertPhase", *invertPhase);
+	copyXmlToBinary(*xml, destData);
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
@@ -205,7 +198,18 @@ void Vst_cpp1AudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 
 void Vst_cpp1AudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
+	//*gain = juce::MemoryInputStream(data, static_cast<size_t>(sizeInBytes), false).readFloat();
+    
+	std::unique_ptr<juce::XmlElement> xmlState (getXmlFromBinary(data, sizeInBytes));
+	if (xmlState.get() != nullptr)
+	{
+		if (xmlState->hasTagName("ParamTutorial"))
+		{
+			*gain = (float)xmlState->getDoubleAttribute("gain", 1.0);
+			*invertPhase = xmlState->getBoolAttribute("invertPhase", false);
+		}
+	}
+	// You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
 }
 

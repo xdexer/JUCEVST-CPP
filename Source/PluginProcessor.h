@@ -53,11 +53,11 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-	//new variables
-	float noteOnVel;
 private:
 
 	juce::AudioParameterFloat* gain;
-    //==============================================================================
+	juce::AudioParameterBool* invertPhase;
+	float previousGain;
+	//==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Vst_cpp1AudioProcessor)
 };

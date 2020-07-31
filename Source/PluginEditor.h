@@ -31,7 +31,5 @@ private:
 
     Vst_cpp1AudioProcessor& audioProcessor;
 
-	juce::Slider midiVolume;
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Vst_cpp1AudioProcessorEditor)
 };
