@@ -33,7 +33,6 @@ public:
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
-
     //==============================================================================
     const juce::String getName() const override;
 
