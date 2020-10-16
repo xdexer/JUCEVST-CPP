@@ -3,7 +3,7 @@ My first attempt in creating VST, my goal is to create a software synthesizer or
 audio programming.
 
 Project will be made solely with JUCE framework for creating multi-platform audio applications. The result will be a VST with GUI that can be
-used in many popular DAWs, for e.g. FL Studio, Ableton Live and many more.
+used in many popular DAWs, e.g. FL Studio, Ableton Live and many more.
 
 Project Schedule (can be changed):
 
