@@ -1,1 +1,6 @@
-In the first stage of the project I was learning the Juce API and reading through its tutorials. I've configured the project in VS 2019 and compiled the necessary source code using CMake. I was using the Projucer to generate the VS Project. As of now I was able to build a simple VST with no GUI that inputs audio and modifies the volume of output. Everything is going smoothly and I think that at the next stage i will have a VST that will modify the audio wave and add some GUI.
+In the first stage of the project I was learning the Juce API and reading through its tutorials. \
+I've become particularly intrested in making a Wavetable Synthesizer with selection of harmonics, different types of waves and drawing audio waveforms.
+I've configured the project in VS 2019 and compiled the necessary source code using CMake. 
+I was using the Projucer to generate the VS Project. 
+As of now I was able to build a simple VST with no GUI that inputs audio and modifies the volume of output. 
+Everything is going smoothly and I think that at the next stage i will have a VST that will modify the audio wave and add some GUI.
