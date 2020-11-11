@@ -4,6 +4,16 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1">
   <MAINGROUP id="kc8rA7" name="VST_CPP1">
     <GROUP id="{BCFA5E56-687D-127C-7F05-8136FE6A3A0E}" name="Source">
+      <FILE id="kI5R9S" name="GainProcessor.cpp" compile="1" resource="0"
+            file="Source/GainProcessor.cpp"/>
+      <FILE id="g2rYvd" name="GainProcessor.h" compile="0" resource="0" file="Source/GainProcessor.h"/>
+      <FILE id="b5U1Ws" name="ProcessorBase.cpp" compile="1" resource="0"
+            file="Source/ProcessorBase.cpp"/>
+      <FILE id="CVZ2eN" name="ProcessorBase.h" compile="0" resource="0" file="Source/ProcessorBase.h"/>
+      <FILE id="ZXv8bz" name="OscillatorProcessor.cpp" compile="1" resource="0"
+            file="Source/OscillatorProcessor.cpp"/>
+      <FILE id="XNKM3g" name="OscillatorProcessor.h" compile="0" resource="0"
+            file="Source/OscillatorProcessor.h"/>
       <FILE id="lJ3u6b" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="ZdNKpn" name="PluginProcessor.h" compile="0" resource="0"

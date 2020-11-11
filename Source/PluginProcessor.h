@@ -52,11 +52,27 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+	void initialiseGraph();
+	void connectAudioNodes();
+	void connectMidiNodes();
+	using AudioGraphIOProcessor = juce::AudioProcessorGraph::AudioGraphIOProcessor;
+	using Node = juce::AudioProcessorGraph::Node;
 private:
 
 	juce::AudioParameterFloat* gain;
 	juce::AudioParameterBool* invertPhase;
+	juce::AudioProcessorValueTreeState parameters;
 	float previousGain;
+
+	std::atomic<float>* phaseParameter = nullptr;
+	std::atomic<float>* gainParameter = nullptr;
+
+	std::unique_ptr<juce::AudioProcessorGraph> mainProcessor;
+	Node::Ptr audioInputNode;
+	Node::Ptr audioOutputNode;
+	Node::Ptr midiInputNode;
+	Node::Ptr midiOutputNode;
+
 	//==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Vst_cpp1AudioProcessor)
 };
