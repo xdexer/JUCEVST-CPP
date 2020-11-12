@@ -4,6 +4,10 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1">
   <MAINGROUP id="kc8rA7" name="VST_CPP1">
     <GROUP id="{BCFA5E56-687D-127C-7F05-8136FE6A3A0E}" name="Source">
+      <FILE id="AKTNFG" name="FilterProcessor.cpp" compile="1" resource="0"
+            file="Source/FilterProcessor.cpp"/>
+      <FILE id="vSeRHk" name="FilterProcessor.h" compile="0" resource="0"
+            file="Source/FilterProcessor.h"/>
       <FILE id="kI5R9S" name="GainProcessor.cpp" compile="1" resource="0"
             file="Source/GainProcessor.cpp"/>
       <FILE id="g2rYvd" name="GainProcessor.h" compile="0" resource="0" file="Source/GainProcessor.h"/>
