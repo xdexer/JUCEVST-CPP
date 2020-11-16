@@ -1,0 +1,3 @@
+In the second stage I started to program a few effects that will be joined together to make some unique sounds. 
+As of now I decided to make a wavetable synthesizer with GUI and I'm preparing to incorporate these effects into final product.
+Because of lack of time and computer crash I wasn't able to make any more progress, bigger changes will happen in the next stage of the project.
