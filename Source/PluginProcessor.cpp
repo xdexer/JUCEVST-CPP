@@ -10,40 +10,40 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-Vst_cpp1AudioProcessor::Vst_cpp1AudioProcessor()
+MySynthAudioProcessor::MySynthAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-	: AudioProcessor(BusesProperties()
-#if ! JucePlugin_IsMidiEffect
-#if ! JucePlugin_IsSynth
-		.withInput("Input", juce::AudioChannelSet::stereo(), true)
-#endif
-		.withOutput("Output", juce::AudioChannelSet::stereo(), true)
-#endif
-	), mainProcessor(new juce::AudioProcessorGraph) ,parameters(*this, nullptr, juce::Identifier("GainParameters"),
-		{
-			std::make_unique<juce::AudioParameterFloat>("gain", "Gain", 0.0f, 1.0f, 0.5f),
-			std::make_unique<juce::AudioParameterBool>("invertPhase", "Invert Phase", false)
-						   })
-						   
+     : AudioProcessor (BusesProperties()
+                     #if ! JucePlugin_IsMidiEffect
+                      #if ! JucePlugin_IsSynth
+                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
+                      #endif
+                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
+                     #endif
+                       )
 #endif
 {
-	addParameter(gain = new juce::AudioParameterFloat("gain", "Gain", 0.0f, 1.0f, 0.5f));
-	addParameter(invertPhase = new juce::AudioParameterBool("invertPhase", "Invert Phase", false));
-	phaseParameter = parameters.getRawParameterValue("invertPhase");
-	gainParameter = parameters.getRawParameterValue("gain");
+    mySynth.clearVoices();
+    
+    for (int i = 0; i < 5; i++)
+    {
+        mySynth.addVoice(new SynthVoice());
+    }
+
+    mySynth.clearSounds();
+    mySynth.addSound(new SynthSound());
 }
 
-Vst_cpp1AudioProcessor::~Vst_cpp1AudioProcessor()
+MySynthAudioProcessor::~MySynthAudioProcessor()
 {
 }
 
 //==============================================================================
-const juce::String Vst_cpp1AudioProcessor::getName() const
+const juce::String MySynthAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
 
-bool Vst_cpp1AudioProcessor::acceptsMidi() const
+bool MySynthAudioProcessor::acceptsMidi() const
 {
    #if JucePlugin_WantsMidiInput
     return true;
@@ -52,7 +52,7 @@ bool Vst_cpp1AudioProcessor::acceptsMidi() const
    #endif
 }
 
-bool Vst_cpp1AudioProcessor::producesMidi() const
+bool MySynthAudioProcessor::producesMidi() const
 {
    #if JucePlugin_ProducesMidiOutput
     return true;
@@ -61,7 +61,7 @@ bool Vst_cpp1AudioProcessor::producesMidi() const
    #endif
 }
 
-bool Vst_cpp1AudioProcessor::isMidiEffect() const
+bool MySynthAudioProcessor::isMidiEffect() const
 {
    #if JucePlugin_IsMidiEffect
     return true;
@@ -70,84 +70,79 @@ bool Vst_cpp1AudioProcessor::isMidiEffect() const
    #endif
 }
 
-double Vst_cpp1AudioProcessor::getTailLengthSeconds() const
+double MySynthAudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
-int Vst_cpp1AudioProcessor::getNumPrograms()
+int MySynthAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
                 // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int Vst_cpp1AudioProcessor::getCurrentProgram()
+int MySynthAudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
-void Vst_cpp1AudioProcessor::setCurrentProgram (int index)
+void MySynthAudioProcessor::setCurrentProgram (int index)
 {
 }
 
-const juce::String Vst_cpp1AudioProcessor::getProgramName (int index)
+const juce::String MySynthAudioProcessor::getProgramName (int index)
 {
     return {};
 }
 
-void Vst_cpp1AudioProcessor::changeProgramName (int index, const juce::String& newName)
+void MySynthAudioProcessor::changeProgramName (int index, const juce::String& newName)
 {
 }
 
 //==============================================================================
-void Vst_cpp1AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void MySynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-	mainProcessor->setPlayConfigDetails(getMainBusNumInputChannels(), getMainBusNumOutputChannels(), sampleRate, samplesPerBlock);
-	mainProcessor->prepareToPlay(sampleRate, samplesPerBlock);
-	initialiseGraph();
-
-	//auto phase = *phaseParameter < 0.5f ? 1.0f : -1.0f;
-	//previousGain = *gainParameter * phase;
+    juce::ignoreUnused(samplesPerBlock);
+    lastSampleRate = sampleRate;
+    mySynth.setCurrentPlaybackSampleRate(lastSampleRate);
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
 }
 
-void Vst_cpp1AudioProcessor::releaseResources()
+void MySynthAudioProcessor::releaseResources()
 {
-	mainProcessor->releaseResources();
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool Vst_cpp1AudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool MySynthAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-	if (layouts.getMainInputChannelSet() == juce::AudioChannelSet::disabled()
-		|| layouts.getMainOutputChannelSet() == juce::AudioChannelSet::disabled())
-		return false;
+  #if JucePlugin_IsMidiEffect
+    juce::ignoreUnused (layouts);
+    return true;
+  #else
+    // This is the place where you check if the layout is supported.
+    // In this template code we only support mono or stereo.
+    if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
+     && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
+        return false;
 
-	if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
-		&& layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
-		return false;
+    // This checks if the input layout matches the output layout
+   #if ! JucePlugin_IsSynth
+    if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
+        return false;
+   #endif
 
-	return layouts.getMainInputChannelSet() == layouts.getMainOutputChannelSet();
+    return true;
+  #endif
 }
 #endif
 
-void Vst_cpp1AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void MySynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-	/*auto phase = *phaseParameter < 0.5f ? 1.0f : -1.0f;
-	auto currentGain = *gainParameter * phase;
-	if (currentGain == previousGain)
-	{
-		buffer.applyGain(currentGain);
-	}
-	else
-	{
-		buffer.applyGainRamp(0, buffer.getNumSamples(), previousGain, currentGain);
-		previousGain = currentGain;
-	}
-	*/
+    buffer.clear();
+    mySynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
@@ -160,8 +155,7 @@ void Vst_cpp1AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
-	//updateGraph();
-	mainProcessor->processBlock(buffer, midiMessages);
+
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
     // Make sure to reset the state if your inner loop is processing
@@ -177,78 +171,33 @@ void Vst_cpp1AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
 }
 
 //==============================================================================
-bool Vst_cpp1AudioProcessor::hasEditor() const
+bool MySynthAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor* Vst_cpp1AudioProcessor::createEditor()
+juce::AudioProcessorEditor* MySynthAudioProcessor::createEditor()
 {
-    return new Vst_cpp1AudioProcessorEditor (*this, parameters);
+    return new MySynthAudioProcessorEditor (*this);
 }
 
 //==============================================================================
-void Vst_cpp1AudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void MySynthAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-	auto state = parameters.copyState();
-	std::unique_ptr<juce::XmlElement> xml(state.createXml());
-	copyXmlToBinary(*xml, destData);
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
 }
 
-void Vst_cpp1AudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void MySynthAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    
-	std::unique_ptr<juce::XmlElement> xmlState (getXmlFromBinary(data, sizeInBytes));
-	if (xmlState.get() != nullptr)
-	{
-		if (xmlState->hasTagName(parameters.state.getType()))
-		{
-			parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
-		}
-	}
-	// You should use this method to restore your parameters from this memory block,
+    // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
-}
-
-
-void Vst_cpp1AudioProcessor::initialiseGraph()
-{
-	mainProcessor->clear();
-
-	audioInputNode = mainProcessor->addNode(std::make_unique<AudioGraphIOProcessor>(AudioGraphIOProcessor::audioInputNode));
-	audioOutputNode = mainProcessor->addNode(std::make_unique<AudioGraphIOProcessor>(AudioGraphIOProcessor::audioOutputNode));
-	midiInputNode = mainProcessor->addNode(std::make_unique<AudioGraphIOProcessor>(AudioGraphIOProcessor::midiInputNode));
-	midiOutputNode = mainProcessor->addNode(std::make_unique<AudioGraphIOProcessor>(AudioGraphIOProcessor::midiOutputNode));
-
-	connectAudioNodes();
-	connectMidiNodes();
-}
-
-void Vst_cpp1AudioProcessor::connectAudioNodes()
-{
-	for (int channel = 0; channel < 2; ++channel)
-	{
-		mainProcessor->addConnection({
-			{audioInputNode->nodeID, channel},
-			{audioOutputNode->nodeID, channel}
-			});
-	}
-}
-
-void Vst_cpp1AudioProcessor::connectMidiNodes()
-{
-	mainProcessor->addConnection({
-		{midiInputNode->nodeID, juce::AudioProcessorGraph::midiChannelIndex},
-		{midiOutputNode->nodeID, juce::AudioProcessorGraph::midiChannelIndex}
-		});
 }
 
 //==============================================================================
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new Vst_cpp1AudioProcessor();
+    return new MySynthAudioProcessor();
 }

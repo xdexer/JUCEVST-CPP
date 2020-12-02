@@ -9,21 +9,23 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "SynthSound.h"
+#include "SynthVoice.h"
 
 //==============================================================================
 /**
 */
-class Vst_cpp1AudioProcessor  : public juce::AudioProcessor
+class MySynthAudioProcessor  : public juce::AudioProcessor
 {
 public:
     //==============================================================================
-    Vst_cpp1AudioProcessor();
-    ~Vst_cpp1AudioProcessor() override;
+    MySynthAudioProcessor();
+    ~MySynthAudioProcessor() override;
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
-	
+
    #ifndef JucePlugin_PreferredChannelConfigurations
     bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
    #endif
@@ -33,6 +35,7 @@ public:
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
+
     //==============================================================================
     const juce::String getName() const override;
 
@@ -52,27 +55,11 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-	void initialiseGraph();
-	void connectAudioNodes();
-	void connectMidiNodes();
-	using AudioGraphIOProcessor = juce::AudioProcessorGraph::AudioGraphIOProcessor;
-	using Node = juce::AudioProcessorGraph::Node;
 private:
+    juce::Synthesiser mySynth;
+    SynthVoice* myVoice;
 
-	juce::AudioParameterFloat* gain;
-	juce::AudioParameterBool* invertPhase;
-	juce::AudioProcessorValueTreeState parameters;
-	float previousGain;
-
-	std::atomic<float>* phaseParameter = nullptr;
-	std::atomic<float>* gainParameter = nullptr;
-
-	std::unique_ptr<juce::AudioProcessorGraph> mainProcessor;
-	Node::Ptr audioInputNode;
-	Node::Ptr audioOutputNode;
-	Node::Ptr midiInputNode;
-	Node::Ptr midiOutputNode;
-
-	//==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Vst_cpp1AudioProcessor)
+    double lastSampleRate;
+    //==============================================================================
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MySynthAudioProcessor)
 };
