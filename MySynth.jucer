@@ -32,8 +32,6 @@
           <FILE id="iNUgrF" name="stb_vorbis.h" compile="0" resource="0" file="Maximilian/src/libs/stb_vorbis.h"/>
         </GROUP>
         <FILE id="k0nWV7" name="maximilian.cpp" compile="1" resource="0" file="Maximilian/src/maximilian.cpp"/>
-        <FILE id="xJ7Mvp" name="maximilian.embind.cpp" compile="1" resource="0"
-              file="Maximilian/src/maximilian.embind.cpp"/>
         <FILE id="Z9w9RX" name="maximilian.h" compile="0" resource="0" file="Maximilian/src/maximilian.h"/>
       </GROUP>
       <FILE id="XCEj8S" name="SynthSound.h" compile="0" resource="0" file="Source/SynthSound.h"/>

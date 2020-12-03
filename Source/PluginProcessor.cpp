@@ -143,6 +143,8 @@ void MySynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
 {
     buffer.clear();
     mySynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
+
+/*
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
@@ -168,6 +170,7 @@ void MySynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
 
         // ..do something to the data...
     }
+    */
 }
 
 //==============================================================================

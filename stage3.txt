@@ -1,0 +1,2 @@
+In the third stage i've changed project template to suitable for building a synthesiser. I've added Maximilian library and created
+an oscillator and envelope filter. As of now, the VST can produce a sine wave and modify its frequency.
