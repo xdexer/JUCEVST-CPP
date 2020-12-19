@@ -2,7 +2,8 @@
 
 <JUCERPROJECT id="FakJvA" name="MySynth" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1"
-              pluginCharacteristicsValue="pluginIsSynth,pluginProducesMidiOut,pluginWantsMidiIn">
+              pluginCharacteristicsValue="pluginIsSynth,pluginProducesMidiOut,pluginWantsMidiIn"
+              pluginManufacturer="Dominik Marcinkowski" companyName="Dominik Marcinkowski">
   <MAINGROUP id="uBLrz3" name="MySynth">
     <GROUP id="{0F09EA91-8BDA-C494-EFFD-9E4F48E13048}" name="Source">
       <GROUP id="{777E3564-6CF2-58B9-A238-BDB7FF43804B}" name="src">
@@ -43,6 +44,8 @@
       <FILE id="sl15gW" name="PluginEditor.cpp" compile="1" resource="0"
             file="Source/PluginEditor.cpp"/>
       <FILE id="O51zA5" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+      <FILE id="jsWdSj" name="Oscillator.cpp" compile="1" resource="0" file="Source/Oscillator.cpp"/>
+      <FILE id="tUoXWE" name="Oscillator.h" compile="0" resource="0" file="Source/Oscillator.h"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>

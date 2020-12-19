@@ -23,6 +23,17 @@ public:
     }
 
     //====================================================================
+    void setParam(std::atomic<float>* attack, std::atomic<float>* decay, std::atomic<float>* sustain, std::atomic<float>* release)
+    {
+        DBG(*attack);
+        DBG(*release);
+        env1.setAttack(static_cast<double>(*attack));
+        env1.setDecay(static_cast<double>(*decay));
+        env1.setSustain(static_cast<double>(*sustain));
+        env1.setRelease(static_cast<double>(*release));
+    }   
+
+    //====================================================================
     void startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* sound, int currentPitchWheelPosition)
     {
         env1.trigger = 1;
@@ -46,13 +57,6 @@ public:
     //====================================================================
     void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples)
     {
-        env1.setAttack(2000.0);
-        env1.setDecay(500.0);
-        env1.setSustain(0.8);
-        env1.setRelease(2000.0);
-
-
-
         for (int sample = 0; sample < numSamples; ++sample)
         {
             double theWave = osc1.sinewave(frequency);
@@ -61,7 +65,6 @@ public:
 
             for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
             {
-
                 outputBuffer.addSample(channel, startSample, filteredSound);
             }
             ++startSample;
@@ -71,7 +74,7 @@ public:
 
     void pitchWheelMoved(int newPitchWheelValue)
     {
-
+    
     }
     //====================================================================
     void controllerMoved(int controllerNumber, int newControllerValue)
