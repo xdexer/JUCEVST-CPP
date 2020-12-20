@@ -15,7 +15,7 @@
 //==============================================================================
 /*
 */
-class Envelope  : public juce::Component, private juce::Slider::Listener
+class Envelope  : public juce::Component
 {
 public:
     Envelope(MySynthAudioProcessor&);
@@ -23,7 +23,6 @@ public:
 
     void paint (juce::Graphics&) override;
     void resized() override;
-    void sliderValueChanged(juce::Slider* slider) override;
 private:
 
     MySynthAudioProcessor& audioProcessor;

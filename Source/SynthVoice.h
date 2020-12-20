@@ -36,8 +36,17 @@ public:
     //====================================================================
     void setOscType(std::atomic<float>* selection)
     {
-        DBG(*selection);
+        //DBG(*selection);
         theWave = *selection;
+    }
+
+    //====================================================================
+    void setFilterParams(std::atomic<float>* filterType, std::atomic<float>* filterCutoff, std::atomic<float>* filterResonance)
+    {
+        DBG(*filterCutoff);
+        filterChoice = *filterType;
+        cutoffFreq = *filterCutoff;
+        resonance = *filterResonance;
     }
 
     //====================================================================
@@ -47,18 +56,39 @@ public:
         {
             return osc1.sinewave(frequency);
         }
-        else if (theWave == 1)
+        if (theWave == 1)
         {
             return osc1.saw(frequency);
         }
-        else if (theWave == 2)
+        if (theWave == 2)
         {
             return osc1.square(frequency);
         }
-        else
+        return osc1.sinewave(frequency);
+    }
+
+    //====================================================================
+    double getEnvelope()
+    {
+        return env1.adsr(getOscType(), env1.trigger);
+    }
+
+    //====================================================================
+    double getFilterParams()
+    {
+        if (filterChoice == 0)
         {
-            return osc1.sinewave(frequency);
+            return filter1.lores(getEnvelope(), cutoffFreq, resonance);
         }
+        if (filterChoice == 1)
+        {
+            return filter1.hires(getEnvelope(), cutoffFreq, resonance);
+        }
+        if (filterChoice == 2)
+        {
+            return filter1.bandpass(getEnvelope(), cutoffFreq, resonance);
+        }
+        return filter1.lores(getEnvelope(), cutoffFreq, resonance);
     }
 
     //====================================================================
@@ -87,13 +117,9 @@ public:
     {
         for (int sample = 0; sample < numSamples; ++sample)
         {
-            //double theWave = osc1.sinewave(frequency);
-            double theSound = env1.adsr(getOscType(), env1.trigger) * level;
-            double filteredSound = filter1.lores(theSound, 100, 0.1);
-
             for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
             {
-                outputBuffer.addSample(channel, startSample, filteredSound);
+                outputBuffer.addSample(channel, startSample, getFilterParams()*0.3f);
             }
             ++startSample;
         }
@@ -114,6 +140,10 @@ private:
     double level;
     double frequency;
     int theWave;
+
+    int filterChoice;
+    float cutoffFreq;
+    float resonance;
 
     maxiOsc osc1;
     maxiEnv env1;

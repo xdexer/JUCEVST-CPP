@@ -20,13 +20,10 @@ MySynthAudioProcessor::MySynthAudioProcessor()
         .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
     ),
-    attackTime(0.1f),
-    decayTime(0.1f),
-    sustainTime(0.1f),
-    releaseTime(0.1f),
     tree(*this, nullptr)
 #endif
 {
+    //ADSR ENVELOPE
     juce::NormalisableRange<float> attackParam(0.1f, 5000.0f);
     juce::NormalisableRange<float> decayParam(0.1f, 1.0f);
     juce::NormalisableRange<float> sustainParam(0.1f, 5000.0f);
@@ -35,9 +32,20 @@ MySynthAudioProcessor::MySynthAudioProcessor()
     tree.createAndAddParameter("decay", "Decay", "decay", decayParam, 0.1f, nullptr, nullptr);
     tree.createAndAddParameter("sustain", "Sustain", "sustain", sustainParam, 0.1f, nullptr, nullptr);
     tree.createAndAddParameter("release", "Release", "release", releaseParam, 0.1f, nullptr, nullptr);
-
+    
+    //TYPE OF WAVE SELECTION
     juce::NormalisableRange<float> wavetypeParam(0, 2); 
     tree.createAndAddParameter("wavetype", "WaveType", "wavetype", wavetypeParam, 0, nullptr, nullptr);
+
+    //Filter settings
+    juce::NormalisableRange<float> filterTypeVal(0, 2);
+    juce::NormalisableRange<float> cutVal(20.0f, 9000.0f);
+    juce::NormalisableRange<float> resVal(1, 5);
+    tree.createAndAddParameter("filterType", "FilterType", "filterType", filterTypeVal, 0, nullptr, nullptr);
+    tree.createAndAddParameter("filterCutoff", "FilterCutoff", "filterCutoff", cutVal, 400.0f, nullptr, nullptr);
+    tree.createAndAddParameter("filterResonance", "FilterResonance", "filterResonance", resVal, 1, nullptr, nullptr);
+    
+
 
     tree.state = juce::ValueTree("ParamTree");
     
@@ -167,6 +175,9 @@ void MySynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
                 tree.getRawParameterValue("sustain"), tree.getRawParameterValue("release"));
             
             myVoice->setOscType(tree.getRawParameterValue("wavetype"));
+
+            myVoice->setFilterParams(tree.getRawParameterValue("filterType"), tree.getRawParameterValue("filterCutoff"),
+                tree.getRawParameterValue("filterResonance"));
         }
     }
 

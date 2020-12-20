@@ -11,12 +11,13 @@
 
 //==============================================================================
 MySynthAudioProcessorEditor::MySynthAudioProcessorEditor (MySynthAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p), oscGUI(p), envGUI(p)
+    : AudioProcessorEditor (&p), audioProcessor (p), oscGUI(p), envGUI(p), filterGUI(p)
 {
-    setSize (400, 200);
+    setSize (600, 200);
 
     addAndMakeVisible(&oscGUI);
     addAndMakeVisible(&envGUI);
+    addAndMakeVisible(&filterGUI);
 
 }
 
@@ -42,5 +43,6 @@ void MySynthAudioProcessorEditor::resized()
 
     oscGUI.setBounds(area.removeFromLeft(componentWidth).removeFromTop(componentHeight));
     envGUI.setBounds(area.removeFromLeft(componentWidth).removeFromTop(componentHeight));
+    filterGUI.setBounds(area.removeFromLeft(componentWidth).removeFromTop(componentHeight));
 }
 
