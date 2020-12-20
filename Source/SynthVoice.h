@@ -23,15 +23,43 @@ public:
     }
 
     //====================================================================
-    void setParam(std::atomic<float>* attack, std::atomic<float>* decay, std::atomic<float>* sustain, std::atomic<float>* release)
+    void setEnvelopeParam(std::atomic<float>* attack, std::atomic<float>* decay, std::atomic<float>* sustain, std::atomic<float>* release)
     {
-        DBG(*attack);
-        DBG(*release);
+        //DBG(*attack);
+        //DBG(*release);
         env1.setAttack(static_cast<double>(*attack));
         env1.setDecay(static_cast<double>(*decay));
         env1.setSustain(static_cast<double>(*sustain));
         env1.setRelease(static_cast<double>(*release));
     }   
+
+    //====================================================================
+    void setOscType(std::atomic<float>* selection)
+    {
+        DBG(*selection);
+        theWave = *selection;
+    }
+
+    //====================================================================
+    double getOscType()
+    {
+        if (theWave == 0)
+        {
+            return osc1.sinewave(frequency);
+        }
+        else if (theWave == 1)
+        {
+            return osc1.saw(frequency);
+        }
+        else if (theWave == 2)
+        {
+            return osc1.square(frequency);
+        }
+        else
+        {
+            return osc1.sinewave(frequency);
+        }
+    }
 
     //====================================================================
     void startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* sound, int currentPitchWheelPosition)
@@ -59,8 +87,8 @@ public:
     {
         for (int sample = 0; sample < numSamples; ++sample)
         {
-            double theWave = osc1.sinewave(frequency);
-            double theSound = env1.adsr(theWave, env1.trigger) * level;
+            //double theWave = osc1.sinewave(frequency);
+            double theSound = env1.adsr(getOscType(), env1.trigger) * level;
             double filteredSound = filter1.lores(theSound, 100, 0.1);
 
             for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
@@ -85,6 +113,7 @@ public:
 private:
     double level;
     double frequency;
+    int theWave;
 
     maxiOsc osc1;
     maxiEnv env1;

@@ -11,47 +11,13 @@
 
 //==============================================================================
 MySynthAudioProcessorEditor::MySynthAudioProcessorEditor (MySynthAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+    : AudioProcessorEditor (&p), audioProcessor (p), oscGUI(p), envGUI(p)
 {
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
-    setSize (400, 300);
+    setSize (400, 200);
 
-    attackSlider.setSliderStyle(juce::Slider::LinearVertical);
-    attackSlider.setRange(0.1f, 5000.0f);
-    attackSlider.setValue(0.1f);
-    attackSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
-    attackSlider.addListener(this);
-    addAndMakeVisible(&attackSlider);
+    addAndMakeVisible(&oscGUI);
+    addAndMakeVisible(&envGUI);
 
-    decaySlider.setSliderStyle(juce::Slider::LinearVertical);
-    decaySlider.setRange(0.1f, 5000.0f);
-    decaySlider.setValue(0.1f);
-    decaySlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
-    decaySlider.addListener(this);
-    addAndMakeVisible(&decaySlider);
-
-    sustainSlider.setSliderStyle(juce::Slider::LinearVertical);
-    sustainSlider.setRange(0.0f, 1.0f);
-    sustainSlider.setValue(0.1f);
-    sustainSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
-    sustainSlider.addListener(this);
-    addAndMakeVisible(&sustainSlider);
-
-    releaseSlider.setSliderStyle(juce::Slider::LinearVertical);
-    releaseSlider.setRange(0.1f, 5000.0f);
-    releaseSlider.setValue(0.1f);
-    releaseSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
-    releaseSlider.addListener(this);
-    addAndMakeVisible(&releaseSlider);
-
-    
-    
-    
-    attackVal = std::make_shared<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.tree, "attack", attackSlider);
-    decayVal = std::make_shared<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.tree, "decay", decaySlider);
-    sustainVal = std::make_shared<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.tree, "sustain", sustainSlider);
-    releaseVal = std::make_shared<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.tree, "release", releaseSlider);
 }
 
 MySynthAudioProcessorEditor::~MySynthAudioProcessorEditor()
@@ -69,29 +35,12 @@ void MySynthAudioProcessorEditor::paint (juce::Graphics& g)
 
 void MySynthAudioProcessorEditor::resized()
 {
-    attackSlider.setBounds(10, 10, 40, 100);
-    decaySlider.setBounds(60, 10, 40, 100);
-    sustainSlider.setBounds(110, 10, 40, 100);
-    releaseSlider.setBounds(160, 10, 40, 100);
+    juce::Rectangle<int> area = getLocalBounds();
+    
+    const int componentWidth = 200;
+    const int componentHeight = 200;
+
+    oscGUI.setBounds(area.removeFromLeft(componentWidth).removeFromTop(componentHeight));
+    envGUI.setBounds(area.removeFromLeft(componentWidth).removeFromTop(componentHeight));
 }
 
-void MySynthAudioProcessorEditor::sliderValueChanged(juce::Slider* slider)
-{
-    if (slider == &attackSlider)
-    {
-        audioProcessor.attackTime = attackSlider.getValue();
-    }
-
-    if (slider == &decaySlider)
-    {
-        audioProcessor.decayTime = decaySlider.getValue();
-    }
-    if (slider == &sustainSlider)
-    {
-        audioProcessor.sustainTime = sustainSlider.getValue();
-    }
-    if (slider == &releaseSlider)
-    {
-        audioProcessor.releaseTime = releaseSlider.getValue();
-    }
-}

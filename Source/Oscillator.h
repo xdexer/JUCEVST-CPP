@@ -11,19 +11,26 @@
 #pragma once
 
 #include <JuceHeader.h>
-
+#include "PluginProcessor.h"
 //==============================================================================
 /*
 */
-class Oscillator  : public juce::Component
+class Oscillator : public juce::Component, private juce::ComboBox::Listener
 {
 public:
-    Oscillator();
+    Oscillator(MySynthAudioProcessor&);
     ~Oscillator() override;
 
     void paint (juce::Graphics&) override;
     void resized() override;
 
+    void comboBoxChanged(juce::ComboBox*) override;
+
 private:
+
+    MySynthAudioProcessor& audioProcessor;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> waveSelection;
+    juce::ComboBox oscMenu;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Oscillator)
 };

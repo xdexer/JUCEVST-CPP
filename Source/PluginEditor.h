@@ -10,11 +10,12 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-
+#include "Oscillator.h"
+#include "Envelope.h"
 //==============================================================================
 /**
 */
-class MySynthAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Slider::Listener
+class MySynthAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
     MySynthAudioProcessorEditor (MySynthAudioProcessor&);
@@ -24,21 +25,13 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 
-    void sliderValueChanged(juce::Slider* slider) override;
+    
 
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     MySynthAudioProcessor& audioProcessor;
-    
-    std::shared_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attackVal;
-    std::shared_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> decayVal;
-    std::shared_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> sustainVal;
-    std::shared_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> releaseVal;
-    juce::Slider attackSlider;
-    juce::Slider decaySlider;
-    juce::Slider sustainSlider;
-    juce::Slider releaseSlider;
-
+    Oscillator oscGUI;
+    Envelope envGUI;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MySynthAudioProcessorEditor)
 };
