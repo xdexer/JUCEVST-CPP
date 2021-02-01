@@ -57,6 +57,9 @@ MySynthAudioProcessor::MySynthAudioProcessor()
     }
     mySynth.clearSounds();
     mySynth.addSound(new SynthSound());
+
+    synth.addSound(new SynthSound());
+    synth.addVoice(new SynthVoice());
 }
 
 MySynthAudioProcessor::~MySynthAudioProcessor()
@@ -128,11 +131,22 @@ void MySynthAudioProcessor::changeProgramName (int index, const juce::String& ne
 //==============================================================================
 void MySynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    juce::ignoreUnused(samplesPerBlock);
-    lastSampleRate = sampleRate;
-    mySynth.setCurrentPlaybackSampleRate(lastSampleRate);
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    //specify oscillator 
+    //changing from maximilian to juce dsp library
+    synth.setCurrentPlaybackSampleRate(sampleRate);
+    
+    for (int i = 0; i < synth.getNumVoices(); ++i)
+    {
+        if (auto voice = dynamic_cast<SynthVoice*>(synth.getVoice(i)))
+        {
+            voice->prepareToPlay(sampleRate, samplesPerBlock, getTotalNumOutputChannels());
+        }
+    }
+
+    //juce::ignoreUnused(samplesPerBlock);
+    //lastSampleRate = sampleRate;
+    //mySynth.setCurrentPlaybackSampleRate(lastSampleRate);
+
 }
 
 void MySynthAudioProcessor::releaseResources()
@@ -167,23 +181,32 @@ bool MySynthAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) 
 
 void MySynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-    for (int i = 0; i < mySynth.getNumVoices(); ++i)
-    {
-        if (myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i)))
-        {
-            myVoice->setEnvelopeParam(tree.getRawParameterValue("attack"), tree.getRawParameterValue("decay"), 
-                tree.getRawParameterValue("sustain"), tree.getRawParameterValue("release"));
-            
-            myVoice->setOscType(tree.getRawParameterValue("wavetype"));
+    //changing from maximilian to juce dsp library
+    juce::ScopedNoDenormals noDenormals;
+    auto totalNumInputChannels = getTotalNumInputChannels();
+    auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-            myVoice->setFilterParams(tree.getRawParameterValue("filterType"), tree.getRawParameterValue("filterCutoff"),
-                tree.getRawParameterValue("filterResonance"));
+    for (auto i = totalNumInputChannels; i < totalNumInputChannels; ++i)
+        buffer.clear(i, 0, buffer.getNumSamples());
+
+
+    for (int i = 0; i < synth.getNumVoices(); ++i)
+    {
+        if (auto voice = dynamic_cast<juce::SynthesiserVoice*>(synth.getVoice(i)))
+        {
+            //Osc controls
+            //ADSR
+            //LFO
         }
     }
 
+    for (const juce::MidiMessageMetadata metadata : midiMessages)
+    {
+        if (metadata.numBytes == 3)
+            juce::Logger::writeToLog("TimeStamp: " + juce::String(metadata.getMessage().getTimeStamp()));
+    }
 
-    buffer.clear();
-    mySynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
+    synth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 
 }
 
@@ -217,4 +240,28 @@ void MySynthAudioProcessor::setStateInformation (const void* data, int sizeInByt
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new MySynthAudioProcessor();
+}
+
+//Value Tree
+juce::AudioProcessorValueTreeState::ParameterLayout MySynthAudioProcessor::createParams()
+{
+    //Combobox: switch oscillators
+    // ADSR - 4x float
+    std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
+
+    //OSC select
+    params.push_back(std::make_unique<juce::AudioParameterChoice>("OSC", "Oscillator",
+        juce::StringArray{"Sine", "Saw", "Square"}, 0));
+
+    //ADSR
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("ATTACK","Attack",
+        juce::NormalisableRange<float>{0.1f, 1.0f, }, 0.1f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("DECAY", "Decay",
+        juce::NormalisableRange<float>{0.1f, 1.0f, }, 0.1f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("SUSTAIN", "Sustain",
+        juce::NormalisableRange<float>{0.1f, 1.0f, }, 1.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("RELEASE", "Release",
+        juce::NormalisableRange<float>{0.1f, 3.0f, }, 0.4f));
+
+    return { params.begin(), params.end() };
 }

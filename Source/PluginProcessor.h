@@ -54,12 +54,16 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+    juce::AudioProcessorValueTreeState::ParameterLayout createParams();
 
     juce::AudioProcessorValueTreeState tree;
 
 private:
     juce::Synthesiser mySynth;
     SynthVoice* myVoice;
+    juce::Synthesiser synth;
+    
+    
 
     double lastSampleRate;
     //==============================================================================

@@ -11,14 +11,16 @@
 
 //==============================================================================
 MySynthAudioProcessorEditor::MySynthAudioProcessorEditor (MySynthAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p), oscGUI(p), envGUI(p), filterGUI(p)
+    : AudioProcessorEditor (&p), audioProcessor (p)
 {
     setSize (600, 200);
+    using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
 
-    addAndMakeVisible(&oscGUI);
-    addAndMakeVisible(&envGUI);
-    addAndMakeVisible(&filterGUI);
-
+    attackAttachment = std::make_unique<SliderAttachment>(audioProcessor.tree, "ATTACK", attackSlider);
+    decayAttachment = std::make_unique<SliderAttachment>(audioProcessor.tree, "DECAY", decaySlider);
+    sustainAttachment = std::make_unique<SliderAttachment>(audioProcessor.tree, "SUSTAIN", sustainSlider);
+    releaseAttachment = std::make_unique<SliderAttachment>(audioProcessor.tree, "RELEASE", releaseSlider);
+    oscSelAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(audioProcessor.tree,"OSC", oscSelector);
 }
 
 MySynthAudioProcessorEditor::~MySynthAudioProcessorEditor()
@@ -40,9 +42,5 @@ void MySynthAudioProcessorEditor::resized()
     
     const int componentWidth = 200;
     const int componentHeight = 200;
-
-    oscGUI.setBounds(area.removeFromLeft(componentWidth).removeFromTop(componentHeight));
-    envGUI.setBounds(area.removeFromLeft(componentWidth).removeFromTop(componentHeight));
-    filterGUI.setBounds(area.removeFromLeft(componentWidth).removeFromTop(componentHeight));
 }
 
