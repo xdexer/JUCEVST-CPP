@@ -59,13 +59,7 @@ public:
     juce::AudioProcessorValueTreeState tree;
 
 private:
-    juce::Synthesiser mySynth;
-    SynthVoice* myVoice;
     juce::Synthesiser synth;
-    
-    
-
-    double lastSampleRate;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MySynthAudioProcessor)
 };

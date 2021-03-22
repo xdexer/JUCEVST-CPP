@@ -20,43 +20,9 @@ MySynthAudioProcessor::MySynthAudioProcessor()
         .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
     ),
-    tree(*this, nullptr)
+    tree(*this, nullptr, "Parameters", createParams())
 #endif
 {
-    //ADSR ENVELOPE
-    juce::NormalisableRange<float> attackParam(0.1f, 5000.0f);
-    juce::NormalisableRange<float> decayParam(0.1f, 1.0f);
-    juce::NormalisableRange<float> sustainParam(0.1f, 5000.0f);
-    juce::NormalisableRange<float> releaseParam(0.1f, 5000.0f);
-    tree.createAndAddParameter("attack", "Attack", "attack", attackParam, 0.1f, nullptr, nullptr);
-    tree.createAndAddParameter("decay", "Decay", "decay", decayParam, 0.1f, nullptr, nullptr);
-    tree.createAndAddParameter("sustain", "Sustain", "sustain", sustainParam, 0.1f, nullptr, nullptr);
-    tree.createAndAddParameter("release", "Release", "release", releaseParam, 0.1f, nullptr, nullptr);
-    
-    //TYPE OF WAVE SELECTION
-    juce::NormalisableRange<float> wavetypeParam(0, 2); 
-    tree.createAndAddParameter("wavetype", "WaveType", "wavetype", wavetypeParam, 0, nullptr, nullptr);
-
-    //Filter settings
-    juce::NormalisableRange<float> filterTypeVal(0, 2);
-    juce::NormalisableRange<float> cutVal(20.0f, 9000.0f);
-    juce::NormalisableRange<float> resVal(1, 5);
-    tree.createAndAddParameter("filterType", "FilterType", "filterType", filterTypeVal, 0, nullptr, nullptr);
-    tree.createAndAddParameter("filterCutoff", "FilterCutoff", "filterCutoff", cutVal, 400.0f, nullptr, nullptr);
-    tree.createAndAddParameter("filterResonance", "FilterResonance", "filterResonance", resVal, 1, nullptr, nullptr);
-    
-
-
-    tree.state = juce::ValueTree("ParamTree");
-    
-    
-    mySynth.clearVoices();
-    for (int i = 0; i < 5; i++)
-    {
-        mySynth.addVoice(new SynthVoice());
-    }
-    mySynth.clearSounds();
-    mySynth.addSound(new SynthSound());
 
     synth.addSound(new SynthSound());
     synth.addVoice(new SynthVoice());
@@ -64,6 +30,7 @@ MySynthAudioProcessor::MySynthAudioProcessor()
 
 MySynthAudioProcessor::~MySynthAudioProcessor()
 {
+    
 }
 
 //==============================================================================
@@ -192,19 +159,29 @@ void MySynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
 
     for (int i = 0; i < synth.getNumVoices(); ++i)
     {
-        if (auto voice = dynamic_cast<juce::SynthesiserVoice*>(synth.getVoice(i)))
+        if (auto voice = dynamic_cast<SynthVoice*>(synth.getVoice(i)))
         {
             //Osc controls
             //ADSR
             //LFO
+            
+            auto& attack = *tree.getRawParameterValue("ATTACK");
+            auto& decay = *tree.getRawParameterValue("DECAY");
+            auto& sustain = *tree.getRawParameterValue("SUSTAIN");
+            auto& release = *tree.getRawParameterValue("RELEASE");
+            
+            auto& oscWaveChoice = *tree.getRawParameterValue("OSC1WAVETYPE");
+            
+            voice->update(attack.load(), decay.load(), sustain.load(), release.load());
+            voice->getOscillator().setWaveType(oscWaveChoice);
         }
     }
 
-    for (const juce::MidiMessageMetadata metadata : midiMessages)
-    {
-        if (metadata.numBytes == 3)
-            juce::Logger::writeToLog("TimeStamp: " + juce::String(metadata.getMessage().getTimeStamp()));
-    }
+//    for (const juce::MidiMessageMetadata metadata : midiMessages)
+//    {
+//        if (metadata.numBytes == 3)
+//            juce::Logger::writeToLog("TimeStamp: " + juce::String(metadata.getMessage().getTimeStamp()));
+//    }
 
     synth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 
@@ -251,7 +228,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout MySynthAudioProcessor::creat
 
     //OSC select
     params.push_back(std::make_unique<juce::AudioParameterChoice>("OSC", "Oscillator",
-        juce::StringArray{"Sine", "Saw", "Square"}, 0));
+        juce::StringArray{"Sine", "Saw", "Square", "Random"}, 0));
 
     //ADSR
     params.push_back(std::make_unique<juce::AudioParameterFloat>("ATTACK","Attack",
@@ -262,6 +239,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout MySynthAudioProcessor::creat
         juce::NormalisableRange<float>{0.1f, 1.0f, }, 1.0f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>("RELEASE", "Release",
         juce::NormalisableRange<float>{0.1f, 3.0f, }, 0.4f));
-
+    
+    
+    params.push_back(std::make_unique<juce::AudioParameterChoice>("OSC1WAVETYPE", "Osc 1 Wave Type", juce::StringArray{"Sine", "Saw", "Square", "Random"}, 0));
     return { params.begin(), params.end() };
 }

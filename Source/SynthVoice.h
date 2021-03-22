@@ -11,6 +11,8 @@
 #pragma once
 #include <JuceHeader.h>
 #include "SynthSound.h"
+#include "Data/AdsrData.h"
+#include "Data/OscData.h"
 
 class SynthVoice : public juce::SynthesiserVoice
 {
@@ -23,16 +25,17 @@ public:
     void prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels);
     void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples) override;
     
+    void update(float attack, float decay, float sustain, float release);
+    OscData& getOscillator(){ return osc;}
+    
 private:
     //changing from maximilian to juce dsp library
-    //juce::dsp::Oscillator<float> osc{ [](float x) {return std::sin(x); } }; //sine wave
-    //juce::dsp::Oscillator<float> osc{ [](float x) {return x / juce::MathConstants<float>::pi; } }; //Saw Wave
+   
 
-    juce::ADSR adsr;
-    juce::ADSR::Parameters adsrParams;
+    AdsrData adsr;
     juce::AudioBuffer<float> synthBuffer;
 
-    juce::dsp::Oscillator<float> osc{ [](float x) {return x < 0.0f ? -1.0f : 1.0f; }, 200 }; //Square Wave
+    OscData osc;
     juce::dsp::Gain<float> gain;
     bool isPrepared{ false };
 };
